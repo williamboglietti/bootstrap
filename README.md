@@ -32,10 +32,16 @@ sudo bash automation.sh
   `# END automation` dans son `authorized_keys`, en conservant les autres lignes ;
 - donne `sudo` sans mot de passe à ce seul compte (`/etc/sudoers.d/90-<compte>`,
   vérifié par `visudo`).
+- met à jour les clés SSH.id (`https://sshid.io/williamboglietti`) du compte
+  personnel qui a lancé `sudo`, entre `# BEGIN sshid.io` et `# END sshid.io`,
+  exactement comme le snippet Termius. Si SSH.id ne répond pas, ce fichier reste
+  inchangé ; lancé directement en root, cette étape est ignorée.
 
 Il peut être relancé : il réécrit le bloc de clés et la règle sudo, sans doublon,
 comme le snippet Termius le fait pour le bloc `sshid.io`.
-Il ne touche ni au compte personnel ni à la configuration de `sshd`.
+Du compte personnel, il ne touche que le bloc `sshid.io` ; il ne modifie pas la
+configuration de `sshd`. Le snippet Termius reste utile là où l'on n'a pas `sudo`
+ou hors Debian/Ubuntu (routeur OPNsense par exemple).
 
 ## Clés autorisées
 

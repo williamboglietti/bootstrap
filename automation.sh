@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Donne à l'automatisation (agents IA, playbooks) l'accès à cette machine Debian ou
-# Ubuntu : compte dédié, connexion par clé seule, sudo sans mot de passe.
+# Ubuntu : compte dédié, connexion par clé seule, sudo sans mot de passe. Met aussi
+# à jour les clés SSH.id du compte personnel qui lance la commande.
 #
 #   curl -fsSL https://raw.githubusercontent.com/williamboglietti/bootstrap/<commit>/automation.sh | sudo bash
 #
-# Relançable : les clés sont réécrites entre deux délimiteurs, le reste du fichier
+# Relançable : les clés sont réécrites entre deux délimiteurs, le reste des fichiers
 # authorized_keys (clés techniques posées à la main) est conservé.
 set -euo pipefail
 
@@ -16,8 +17,7 @@ AUTOMATION_KEYS=(
   "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPA8//IhYycs45VDwyKSAFk1kcngJv/cB6NVdc0klzn6 automation@macbook-air"
 )
 
-BEGIN_MARK="# BEGIN automation"
-END_MARK="# END automation"
+SSHID_URL="${SSHID_URL:-https://sshid.io/williamboglietti}"
 
 die() { echo "automation.sh : $*" >&2; exit 1; }
 
@@ -41,37 +41,19 @@ main() {
   # verrouillé « ! » est refusé par sshd quand PAM est désactivé).
   usermod --password '*' "$AUTOMATION_USER"
 
-  local home group ssh_dir auth_file
-  home="$(getent passwd "$AUTOMATION_USER" | cut -d: -f6)"
-  group="$(id -gn "$AUTOMATION_USER")"
-  ssh_dir="$home/.ssh"
-  auth_file="$ssh_dir/authorized_keys"
-  install -d -m 700 -o "$AUTOMATION_USER" -g "$group" "$ssh_dir"
+  work="$(mktemp -d)"
+  trap 'rm -rf "$work"' EXIT
 
-  keys_file="$(mktemp)"
-  new_auth="$(mktemp)"
-  sudoers_tmp="$(mktemp)"
-  trap 'rm -f "$keys_file" "$new_auth" "$sudoers_tmp"' EXIT
+  printf '%s\n' "${AUTOMATION_KEYS[@]}" > "$work/automation.keys"
+  ssh-keygen -lf "$work/automation.keys" >/dev/null || die "clé publique invalide dans le script."
+  write_key_block "$AUTOMATION_USER" "$work/automation.keys" automation
 
-  printf '%s\n' "${AUTOMATION_KEYS[@]}" > "$keys_file"
-  ssh-keygen -lf "$keys_file" >/dev/null || die "clé publique invalide dans le script."
-
-  {
-    if [ -f "$auth_file" ]; then
-      sed "/^${BEGIN_MARK}\$/,/^${END_MARK}\$/d" "$auth_file" | grep -vxFf "$keys_file" || true
-    fi
-    echo "$BEGIN_MARK"
-    cat "$keys_file"
-    echo "$END_MARK"
-  } > "$new_auth"
-  install -m 600 -o "$AUTOMATION_USER" -g "$group" "$new_auth" "$auth_file"
-
-  echo "$AUTOMATION_USER ALL=(ALL) NOPASSWD:ALL" > "$sudoers_tmp"
-  visudo -cqf "$sudoers_tmp" || die "règle sudo refusée par visudo."
-  install -m 440 -o root -g root "$sudoers_tmp" "/etc/sudoers.d/90-$AUTOMATION_USER"
+  echo "$AUTOMATION_USER ALL=(ALL) NOPASSWD:ALL" > "$work/sudoers"
+  visudo -cqf "$work/sudoers" || die "règle sudo refusée par visudo."
+  install -m 440 -o root -g root "$work/sudoers" "/etc/sudoers.d/90-$AUTOMATION_USER"
 
   echo "Compte $AUTOMATION_USER prêt sur $(hostname) :"
-  ssh-keygen -lf "$keys_file" | sed 's/^/  clé : /'
+  ssh-keygen -lf "$work/automation.keys" | sed 's/^/  clé : /'
   if sudo -n -l -U "$AUTOMATION_USER" | grep -q 'NOPASSWD: ALL'; then
     echo "  sudo sans mot de passe : oui"
   else
@@ -84,6 +66,46 @@ main() {
   fi
   if command -v ip >/dev/null; then
     ip -brief -4 address show scope global | awk '{print "  adresse : " $3 " (" $1 ")"}'
+  fi
+
+  update_personal_keys
+}
+
+# Remplace, dans authorized_keys du compte, le bloc « # BEGIN <nom> … # END <nom> »
+# par les clés données, retire leurs doublons hors bloc et garde toutes les autres lignes.
+write_key_block() {
+  local user="$1" keys="$2" name="$3"
+  local home group auth
+  home="$(getent passwd "$user" | cut -d: -f6)"
+  group="$(id -gn "$user")"
+  auth="$home/.ssh/authorized_keys"
+  install -d -m 700 -o "$user" -g "$group" "$home/.ssh"
+  {
+    if [ -f "$auth" ]; then
+      sed "/^# BEGIN ${name}\$/,/^# END ${name}\$/d" "$auth" | grep -vxFf "$keys" || true
+    fi
+    echo "# BEGIN $name"
+    cat "$keys"
+    echo "# END $name"
+  } > "$work/$name.new"
+  install -m 600 -o "$user" -g "$group" "$work/$name.new" "$auth"
+}
+
+# Même effet que le snippet Termius, pour le compte qui a lancé sudo : ses clés
+# SSH.id entre « # BEGIN sshid.io » et « # END sshid.io ». En cas d'échec du
+# téléchargement, son fichier reste inchangé et le script se termine quand même.
+update_personal_keys() {
+  local user="${SUDO_USER:-}"
+  if [ -z "$user" ] || [ "$user" = root ] || [ "$user" = "$AUTOMATION_USER" ]; then
+    echo "sshid.io : ignoré (lancer avec sudo depuis son compte personnel)."
+    return
+  fi
+  if curl -fsS "$SSHID_URL" > "$work/sshid.keys" </dev/null && [ -s "$work/sshid.keys" ] \
+    && ssh-keygen -lf "$work/sshid.keys" >/dev/null 2>&1; then
+    write_key_block "$user" "$work/sshid.keys" sshid.io
+    echo "sshid.io : $(grep -c . "$work/sshid.keys") clés à jour pour $user"
+  else
+    echo "sshid.io : échec, authorized_keys de $user inchangé"
   fi
 }
 
