@@ -1,6 +1,6 @@
 # bootstrap
 
-Une commande pour donner à l'automatisation (Ansible, agents IA) l'accès à une
+Une commande pour donner à l'automatisation (agents IA, playbooks) l'accès à une
 machine Debian ou Ubuntu fraîchement installée.
 
 ## Utilisation
@@ -26,22 +26,30 @@ sudo bash automation.sh
 ## Ce que fait le script
 
 - installe `sudo` et `openssh-server` s'ils manquent ;
-- crée le compte `ansible` (ou `AUTOMATION_USER=automation`, à passer après
-  `sudo`) sans mot de passe utilisable : connexion par clé seule ;
+- crée le compte `automation` (autre nom : `AUTOMATION_USER=<nom>`, à passer
+  après `sudo`) sans mot de passe utilisable : connexion par clé seule ;
 - écrit les clés publiques ci-dessous entre `# BEGIN automation` et
   `# END automation` dans son `authorized_keys`, en conservant les autres lignes ;
 - donne `sudo` sans mot de passe à ce seul compte (`/etc/sudoers.d/90-<compte>`,
   vérifié par `visudo`).
+- met à jour les clés SSH.id (`https://sshid.io/williamboglietti`) du compte
+  personnel qui a lancé `sudo`, entre `# BEGIN sshid.io` et `# END sshid.io`,
+  exactement comme le snippet Termius. Si SSH.id ne répond pas, ce fichier reste
+  inchangé ; lancé directement en root, cette étape est ignorée.
 
-Il peut être relancé : il réécrit le bloc de clés et la règle sudo, sans doublon.
-Il ne touche ni au compte personnel ni à la configuration de `sshd`.
+Il peut être relancé : il réécrit le bloc de clés et la règle sudo, sans doublon,
+comme le snippet Termius le fait pour le bloc `sshid.io`.
+Du compte personnel, il ne touche que le bloc `sshid.io` ; il ne modifie pas la
+configuration de `sshd`. Le snippet Termius reste utile là où l'on n'a pas `sudo`
+ou hors Debian/Ubuntu (routeur OPNsense par exemple).
 
 ## Clés autorisées
 
 | Clé | Empreinte | Poste |
 | --- | --- | --- |
-| `ansible-automation` | `SHA256:dEzb+l2x1YwGkXUpGQzEwZdeQA9U3477GqVNiz4c4p0` | MacBook Air |
+| `automation@macbook-air` (`~/.ssh/automation`) | `SHA256:FwhmgH6EW1xnvXtgn5R8cw5U4mQrCIeKYRCWTJLRw70` | MacBook Air |
 
-Ces clés sont publiques par nature. Ajouter ou retirer un poste : modifier
-`AUTOMATION_KEYS` dans `automation.sh`, puis relancer le script (ou le rôle Ansible
-équivalent) sur chaque machine.
+Ces clés sont publiques par nature. **Rotation** : modifier `AUTOMATION_KEYS`
+dans `automation.sh`, publier, puis relancer le script sur chaque machine, avec
+l'ancienne clé encore valide. Le bloc délimité est remplacé en entier : une clé
+retirée de la liste disparaît, les autres lignes du fichier restent.
