@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Donne à l'automatisation (Ansible, agents IA) l'accès à cette machine Debian ou
+# Donne à l'automatisation (agents IA, playbooks) l'accès à cette machine Debian ou
 # Ubuntu : compte dédié, connexion par clé seule, sudo sans mot de passe.
 #
 #   curl -fsSL https://raw.githubusercontent.com/williamboglietti/bootstrap/<commit>/automation.sh | sudo bash
@@ -8,11 +8,12 @@
 # authorized_keys (clés techniques posées à la main) est conservé.
 set -euo pipefail
 
-AUTOMATION_USER="${AUTOMATION_USER:-ansible}"
+AUTOMATION_USER="${AUTOMATION_USER:-automation}"
 
-# Une clé par poste qui pilote (décision V131 d'ansible-infra).
+# Une clé par poste qui pilote, ~/.ssh/automation sur chacun. Changer cette liste
+# puis relancer le script fait la rotation : seul le bloc délimité est réécrit.
 AUTOMATION_KEYS=(
-  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE1TGPtNf2FvZ4HwR3qNigg/vy3IEjC3pANRBAuQ+Uh3 ansible-automation"
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPA8//IhYycs45VDwyKSAFk1kcngJv/cB6NVdc0klzn6 automation@macbook-air"
 )
 
 BEGIN_MARK="# BEGIN automation"
