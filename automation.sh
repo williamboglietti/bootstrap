@@ -11,10 +11,14 @@ set -euo pipefail
 
 AUTOMATION_USER="${AUTOMATION_USER:-automation}"
 
-# Une clé par poste qui pilote, ~/.ssh/automation sur chacun. Changer cette liste
-# puis relancer le script fait la rotation : seul le bloc délimité est réécrit.
+# Une clé par poste qui pilote, ~/.ssh/automation sur chacun, acceptée seulement
+# depuis les réseaux internes et Tailscale. Même liste que
+# group_vars/all/ssh_access.yml d'ansible-infra (V138), qui l'applique ensuite.
+# Changer cette liste puis relancer le script fait la rotation : seul le bloc
+# délimité est réécrit.
+INTERNAL='from="10.10.0.0/16,100.64.0.0/10,2a01:e0a:1138:10d0::/60,fd1d:34cd:2570::/48,fd7a:115c:a1e0::/48"'
 AUTOMATION_KEYS=(
-  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPA8//IhYycs45VDwyKSAFk1kcngJv/cB6NVdc0klzn6 automation@macbook-air"
+  "$INTERNAL ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPA8//IhYycs45VDwyKSAFk1kcngJv/cB6NVdc0klzn6 automation@macbook-air"
 )
 
 SSHID_URL="${SSHID_URL:-https://sshid.io/williamboglietti}"
@@ -82,7 +86,10 @@ write_key_block() {
   install -d -m 700 -o "$user" -g "$group" "$home/.ssh"
   {
     if [ -f "$auth" ]; then
-      sed "/^# BEGIN ${name}\$/,/^# END ${name}\$/d" "$auth" | grep -vxFf "$keys" || true
+      # Une copie de la clé hors du bloc échapperait à from= : on compare la clé
+      # elle-même (champ base64), pas la ligne entière.
+      awk '{for (i = 1; i <= NF; i++) if ($i ~ /^AAAA/) print $i}' "$keys" > "$work/$name.bodies"
+      sed "/^# BEGIN ${name}\$/,/^# END ${name}\$/d" "$auth" | grep -vFf "$work/$name.bodies" || true
     fi
     echo "# BEGIN $name"
     cat "$keys"
