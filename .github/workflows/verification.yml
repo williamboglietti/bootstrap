@@ -1,0 +1,35 @@
+name: Vérification
+
+# Dépôt public : uniquement les runners de GitHub, jamais ci-runner, où une PR venue
+# d'une copie du dépôt exécuterait son code sur le réseau de William.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: shellcheck
+        run: |
+          shellcheck --version
+          shellcheck -- *.sh tests/*.sh
+
+  automation-sh:
+    name: automation.sh (${{ matrix.image }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["debian:13", "ubuntu:24.04"]
+    container: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exécuter automation.sh en root et vérifier le résultat
+        run: bash tests/test-automation.sh
