@@ -19,6 +19,9 @@ AUTOMATION_USER="${AUTOMATION_USER:-automation}"
 INTERNAL='from="10.10.0.0/16,100.64.0.0/10,2a01:e0a:1138:10d0::/60,fd1d:34cd:2570::/48,fd7a:115c:a1e0::/48"'
 AUTOMATION_KEYS=(
   "$INTERNAL ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPA8//IhYycs45VDwyKSAFk1kcngJv/cB6NVdc0klzn6 automation@macbook-air"
+  # Clé de secours : sa clé privée est dans le Vault d'ansible-infra, sortie
+  # seulement pour amorcer un poste neuf ou après un sinistre.
+  "$INTERNAL ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICJkLHPp3zkXgGycKYrPBW7MsqRfoJDyyOEv4XWi+7fG automation-secours"
 )
 
 SSHID_URL="${SSHID_URL:-https://sshid.io/williamboglietti}"
