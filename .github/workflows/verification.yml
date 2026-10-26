@@ -13,8 +13,11 @@ permissions:
 jobs:
   shellcheck:
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node.js 24
+        with:
+          persist-credentials: false
       - name: shellcheck
         run: |
           shellcheck --version
@@ -30,6 +33,8 @@ jobs:
         image: ["debian:13", "ubuntu:24.04"]
     container: ${{ matrix.image }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node.js 24
+        with:
+          persist-credentials: false
       - name: Exécuter automation.sh en root et vérifier le résultat
         run: bash tests/test-automation.sh
