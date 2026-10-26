@@ -15,7 +15,7 @@ const REVIEWER = "github-actions[bot]";
 // A change in their BASE version requires human reception of this contract;
 // do not infer a new policy from PR-controlled YAML or accept unknown CI jobs.
 const CI_CONTRACT = [
-    {path: ".github/workflows/verification.yml", sha256: "89530cfd565207a7a3241f4212a19b2d015642219b3cd94d3590d410585e65c1",
+    {path: ".github/workflows/verification.yml", sha256: "e577ee169d0c30d68952ebe19da05140aa5356a1968dc71165589bc31db33dcb",
         checks: ["shellcheck", "automation.sh (debian:13)", "automation.sh (ubuntu:24.04)", "review-policy"],
         applies: () => true},
 ];

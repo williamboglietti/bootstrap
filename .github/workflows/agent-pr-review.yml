@@ -40,10 +40,10 @@ jobs:
             .github/
             tests/test_review_validated_pr.cjs
           sparse-checkout-cone-mode: false
-      - name: Set up Node.js 24 for reviewer tests
+      - name: Set up Node.js 26 for reviewer tests
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '24'
+          node-version: '26'
           package-manager-cache: false
       - name: Receive trusted reviewer against simulated APIs
         shell: bash
