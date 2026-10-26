@@ -77,8 +77,10 @@ Prérequis : `git`, `ssh-keygen` et `gh` connecté avec le compte des agents
 depuis les réseaux internes et Tailscale (`from=` par défaut) : pas d'IP fixe à
 réserver.
 
-La clé ne vaut rien avant que William approuve et fusionne la PR, puis applique
-`playbooks/ssh-access.yml`. Un commit poussé après l'approbation l'annule.
+La clé ne vaut rien avant que William approuve et fusionne la PR. Après la
+fusion, le workflow d'ansible-infra applique automatiquement la liste de clés
+publiques avec `playbooks/ssh-access.yml`. Un commit poussé après l'approbation
+l'annule.
 
 ## Contribuer
 
