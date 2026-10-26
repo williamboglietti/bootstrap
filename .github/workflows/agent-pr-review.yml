@@ -1,0 +1,65 @@
+name: Review a validated ordinary pull request
+
+# Manual dispatch only: trusted default-branch code, never PR code.
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Open ordinary pull request number
+        type: string
+        required: true
+      head_sha:
+        description: Exact 40-character pull request head SHA to review
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  checks: read
+  statuses: read
+  pull-requests: write
+
+concurrency:
+  group: validated-review-${{ inputs.pr_number }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      # Only the immutable DEFAULT-BRANCH dispatch commit is loaded. The script
+      # refuses if default has advanced. No PR checkout, artifact, or PR code.
+      - name: Load trusted default-branch reviewer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            .github/
+            tests/test_review_validated_pr.cjs
+          sparse-checkout-cone-mode: false
+      - name: Set up Node.js 24 for reviewer tests
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Receive trusted reviewer against simulated APIs
+        shell: bash
+        run: node --test tests/test_review_validated_pr.cjs
+      - name: Approve only the exact validated ordinary revision
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8; verified GitHub refs/tags/v8
+        env:
+          REVIEW_PR_NUMBER: ${{ inputs.pr_number }}
+          REVIEW_HEAD_SHA: ${{ inputs.head_sha }}
+          REVIEW_BASE_SHA: ${{ github.sha }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const review = require('./.github/scripts/review-validated-pr.cjs');
+            await review({github, context, core, inputs: {
+              prNumber: process.env.REVIEW_PR_NUMBER,
+              headSha: process.env.REVIEW_HEAD_SHA,
+              baseSha: process.env.REVIEW_BASE_SHA,
+            }});
