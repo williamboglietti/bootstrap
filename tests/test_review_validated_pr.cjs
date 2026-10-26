@@ -132,7 +132,7 @@ for (const [name, modify] of [
     ["an unresolved changes-requested review", state => {state.data.reviews = [{id: 3, user: {login: "williamboglietti"}, state: "CHANGES_REQUESTED"}];}],
     ["an unknown CODEOWNERS syntax", state => {state.data.contents[".github/CODEOWNERS"] = "!roles/ @williamboglietti\n";}],
     ["an ownerless CODEOWNERS carveout", state => {state.data.contents[".github/CODEOWNERS"] += "\n/roles/\n";}],
-    ["a changed trusted CI contract", state => {state.data.contents[".github/workflows/validate.yml"] += "\n# unreceived\n";}],
+    ["a changed trusted CI contract", state => {state.data.contents[".github/workflows/verification.yml"] += "\n# unreceived\n";}],
 ]) test(`refuses ${name}`, () => refuses(modify));
 
 for (const conclusion of ["failure", "skipped", "neutral", "cancelled", "timed_out", "action_required", null]) {
@@ -148,7 +148,7 @@ test("uses latest commit status per context instead of an old pending status", a
 });
 
 for (const filename of ["automation.sh", "enroll.sh", "tests/test-automation.sh", "group_vars/all/ssh_access.yml", "group_vars/all/extra_vault.yml", "playbooks/ssh-access.yml",
-    ".github/workflows/validate.yml", ".github/CODEOWNERS", "CODEOWNERS", "docs/CODEOWNERS", "AGENTS.md", ".env",
+    ".github/workflows/verification.yml", ".github/CODEOWNERS", "CODEOWNERS", "docs/CODEOWNERS", "AGENTS.md", ".env",
     "LICENSE", "vendor/adapter/LICENSE-MIT", "COPYING.txt", "vendor/adapter/copying.extra",
     "migrations/001.sql", "app/db/migrations/001.sql", "infra/main.tf", "infra/env/production.tfvars",
     "certificates/client.pem", "certificates/client.key"]) {
