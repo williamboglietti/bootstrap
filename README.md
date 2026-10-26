@@ -79,3 +79,8 @@ réserver.
 
 La clé ne vaut rien avant que William approuve et fusionne la PR, puis applique
 `playbooks/ssh-access.yml`. Un commit poussé après l'approbation l'annule.
+
+## Contribuer
+
+Les règles de revue et les vérifications avant fusion sont décrites dans
+[CONTRIBUTING.md](CONTRIBUTING.md).
