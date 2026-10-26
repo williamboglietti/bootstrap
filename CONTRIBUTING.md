@@ -3,6 +3,10 @@
 Les changements passent par une pull request vers `main`. La branche doit être
 à jour et les quatre contrôles GitHub Actions doivent réussir : ShellCheck,
 les tests d'`automation.sh` sur Debian 13 et Ubuntu 24.04, et `review-policy`.
+Ce dernier reçoit le garde sous Node.js 24 et 26, dans le même contrôle requis.
+Les actions tierces conservent leur moteur intégré déclaré par leur éditeur ;
+notamment, `github-script@v8` utilise Node.js 24 indépendamment du Node installé
+pour les commandes de test.
 
 Les modifications d'`automation.sh`, d'`enroll.sh`, des tests et de `.github/`
 nécessitent une revue de @williamboglietti, selon
