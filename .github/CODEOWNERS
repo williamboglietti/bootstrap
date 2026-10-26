@@ -1,0 +1,8 @@
+# Les scripts d'accès et leurs gardes nécessitent une revue du propriétaire.
+/automation.sh @williamboglietti
+/enroll.sh @williamboglietti
+/.github/ @williamboglietti
+/tests/ @williamboglietti
+/SECURITY.md @williamboglietti
+/AGENTS.md @williamboglietti
+/CLAUDE.md @williamboglietti
