@@ -27,6 +27,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '26'
+          check-latest: true
           package-manager-cache: false
       - name: Receive the approval policy under Node.js 26 with simulated APIs
         run: node --test tests/test_review_validated_pr.cjs
