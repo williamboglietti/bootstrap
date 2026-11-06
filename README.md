@@ -48,6 +48,7 @@ ou hors Debian/Ubuntu (routeur OPNsense par exemple).
 | Clé | Empreinte | Poste |
 | --- | --- | --- |
 | `automation@macbook-air` (`~/.ssh/automation`) | `SHA256:FwhmgH6EW1xnvXtgn5R8cw5U4mQrCIeKYRCWTJLRw70` | MacBook Air |
+| `automation@mac-mini-claude` (`~/.ssh/automation`) | `SHA256:tn3Qw20HtmyvEhUT8+L4hCMMtosyfPJJNWih1OQjczc` | Mac mini |
 | `automation-secours` | `SHA256:gNx9hmbZERronatWwX6TUwVfaSvW/AtvqvFq9TpLLdc` | clé de secours, clé privée dans le Vault d'ansible-infra |
 
 Ces clés sont publiques par nature. **Rotation** : modifier `AUTOMATION_KEYS`
